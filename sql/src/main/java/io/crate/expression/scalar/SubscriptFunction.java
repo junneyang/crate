@@ -82,7 +82,11 @@ public class SubscriptFunction extends Scalar<Object, Object[]> {
                     parseTypeSignature("array(E)"),
                     DataTypes.INTEGER.getTypeSignature(),
                     parseTypeSignature("E"))
-                .withTypeVariableConstraints(typeVariable("E")),
+                .withTypeVariableConstraints(
+                typeVariable("E")
+                    // `object` must be excluded to make it more specific for anything than `object`.
+                    // Otherwise the signature of `subscript(array(object()), key)` could also match on coercion.
+                    .withExcludedTypes(DataTypes.UNTYPED_OBJECT.getTypeSignature())),
             (signature, dataTypes) -> {
                 var returnType = ((ArrayType<?>) dataTypes.get(0)).innerType();
                 return new SubscriptFunction(
@@ -96,8 +100,7 @@ public class SubscriptFunction extends Scalar<Object, Object[]> {
                 NAME,
                 DataTypes.UNTYPED_OBJECT.getTypeSignature(),
                 DataTypes.STRING.getTypeSignature(),
-                DataTypes.UNDEFINED.getTypeSignature()
-            ).withVariableArity(),
+                DataTypes.UNDEFINED.getTypeSignature()),
             (signature, dataTypes) ->
                 new SubscriptFunction(
                     signature,
