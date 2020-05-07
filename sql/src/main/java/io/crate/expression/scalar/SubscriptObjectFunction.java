@@ -109,9 +109,22 @@ public class SubscriptObjectFunction extends Scalar<Object, Map<String, Object>>
             return func;
         } else {
             DataType<?> returnType = objectType.resolveInnerType(path);
+            var signature = func.signature();
+            var signatureWithInferredReturnType = Signature.builder()
+                .returnType(returnType.getTypeSignature())
+                .name(signature.getName())
+                .argumentTypes(signature.getArgumentTypes())
+                .kind(signature.getKind())
+                .setVariableArity(signature.getBindingInfo().isVariableArity())
+                .typeVariableConstraints(signature.getBindingInfo().getTypeVariableConstraints())
+                .build();
             return returnType.equals(DataTypes.UNDEFINED)
                 ? func
-                : new Function(new FunctionInfo(func.info().ident(), returnType), func.arguments());
+                : new Function(
+                    new FunctionInfo(func.info().ident(), returnType),
+                    signatureWithInferredReturnType,
+                    func.arguments()
+            );
         }
     }
 
